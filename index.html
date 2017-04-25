@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <style>
+
+  body{
+    background-color: LightCyan;
+    text-align: center;
+
+    font-family: sans-serif;
+    font-size: 9pt;
+  }
+
+  p{
+    font-size: 13pt;
+  }
+
+  a{
+    font-size: 13pt;
+  }
+
+  a:hover{
+    color: red;
+  }
+
+
+  </style>
+
+  <title>Repository Viewer</title>
+</head>
+
+<body>
+  <h1>Please type in the GitHub username of the person you want to see repositories of.</h1>
+  <input type = "text" name = "Username" class = "enter" value = "" id = "username"/>
+  <input type = "button" value = "enter" OnClick = "show()"/>
+  <br><br>
+  <div id = "pic"></div>
+  <p> </p>
+
+
+  <script type="text/javascript">
+       function show() {
+         var avatar = "";
+         var username = document.getElementById("username");
+         var para = document.getElementsByTagName("P").item(0);
+         var url = "https://api.github.com/users/" + username.value + "/repos";
+
+         getJSON(url, function(err, data){
+           if (err) throw err;
+
+           //Get rid of the empty p tags that are used as spaces
+           var p_list = document.getElementsByTagName("p");
+           for(var i = p_list.length-1; i>=1; i--){
+             var p = p_list[i];
+             p.parentNode.removeChild(p);
+           }
+
+           //To get rid of the links to make different ones
+           var a_list = document.getElementsByTagName("a");
+           for(var i = a_list.length-1; i>=0; i--){
+             var a = a_list[i];
+             a.parentNode.removeChild(a);
+
+           }
+
+           //to replace the pictures
+           document.getElementById("pic").innerHTML = "";
+
+           //If there are no public repositories
+           if(data.length == 0){
+             var text = document.createTextNode(username.value + " has no public repositories.");
+             var newElement = document.createElement("P");
+             newElement.appendChild(text);
+             para.parentNode.appendChild(newElement);
+           }
+           else{
+             avatar = data[0]['owner']['avatar_url'];
+            //Insert the picture
+            var elem = document.createElement("img");
+            elem.setAttribute("src", avatar);
+            elem.setAttribute("height", 200);
+            elem.setAttribute("width", 200);
+            document.getElementById("pic").appendChild(elem);
+
+            //Make the clickable links
+            for(var i = 0; i < data.length; i++){
+                var repo = data[i]['name'] + " - " + data[i]['html_url'];
+                var link = document.createElement("a");
+                link.setAttribute("href", data[i]['html_url']);
+                link.setAttribute("target", "_blank");
+                link.appendChild(document.createTextNode(data[i]['name']));
+                para.parentNode.appendChild(link);
+
+                //To add some nice line breaks so its not all on one line.
+                var space = document.createTextNode("");
+                var newElement = document.createElement("P");
+                newElement.appendChild(space);
+                para.parentNode.appendChild(newElement);
+
+              }
+           }
+         });
+
+
+       }
+
+       //Makes the http request to get the JSON object
+       var getJSON = function(url, callback) {
+         var xmlhttp = new XMLHttpRequest();
+         xmlhttp.open("GET", url, true);
+         xmlhttp.responseType = "json";
+         xmlhttp.onload = function(){
+           var status = xmlhttp.status;
+           if(status == 200) {
+             callback(null, xmlhttp.response);
+           }
+           else{
+             callback(status);
+           }
+         };
+         xmlhttp.send();
+       }
+
+
+    </script>
+
+</body>
